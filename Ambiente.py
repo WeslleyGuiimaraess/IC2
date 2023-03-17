@@ -1,0 +1,86 @@
+import retro
+from settings import *
+
+class Ambiente(object):
+
+    def __init__(self):
+        self.estado_anterior    = ESTADO_INICIAL
+        self.estado_atual       = ESTADO_INICIAL
+        self.env                = None
+        self.observation        = None
+
+        self.recompensa_total   = None
+        self.tempo_atual        = None
+        self.progresso_atual    = None
+
+        self.tipo_ambiente      = None # 'COOP' ou 'SING'
+
+        retro.data.Integrations.add_custom_path(
+            os.path.join(PROJECT_DIR, "custom_integrations")
+        )
+
+    def inicia_ambiente_singleplayer(self):
+        self.env = retro.make("TicoTeco-Snes", inttype=retro.data.Integrations.ALL, players=1)
+        self.obs = self.env.reset()
+        self.tipo_ambiente = 'SING'
+
+
+    def inicia_ambiente_coop(self):
+        self.env = retro.make("TicoTeco-Snes", inttype=retro.data.Integrations.ALL, players=2)
+        self.obs = self.env.reset()
+        self.tipo_ambiente = 'COOP'
+
+
+    def reinicia_ambiente(self):
+        self.obs                = self.env.reset()
+        self.estado_anterior    = ESTADO_INICIAL
+        self.estado_atual       = ESTADO_INICIAL
+        self.recompensa_total   = 0
+        self.tempo_atual        = 0
+        self.progresso_atual    = 0
+
+
+    def pega_recompensa_atual(self):
+        return (
+            (self.estado_atual['estrelas'] - self.estado_anterior['estrelas']) * 1000 \
+            + (self.estado_atual['flores'] - self.estado_anterior['flores']) * 200 \
+            + (self.estado_atual['progresso'] != 0) * 1 \
+            + (self.estado_atual['tempo'] != 0) * -1 \
+            + (self.estado_atual['1_coracao'] != 24) * -100 \
+            + (self.estado_atual['2_coracao'] != 24) * -200 \
+            + (self.estado_atual['3_coracao'] != 24) * -500 \
+            + (self.estado_atual['pegar_jogar'] - self.estado_anterior['pegar_jogar']) * 1 \
+            + (self.estado_atual['game_over'] != 0) * -1000 \
+            + (self.estado_atual['mob'] - self.estado_anterior['mob']) * 1 \
+        )
+
+
+    def executa_com_movimentos_aleatorios(self):
+
+        if self.env is None: return
+
+        self.reinicia_ambiente()
+
+        done = False
+        while(not done):
+            
+            action = self.env.action_space.sample()
+            if self.tipo_ambiente == 'COOP':
+                action += self.env.action_space.sample() # Permite movimentação do 2° jogador
+
+            obs, rew, done, info = self.env.step(action)
+            self.estado_atual = info
+            self.recompensa_total   += self.pega_recompensa_atual()
+            self.tempo_atual        += 1
+            self.progresso_atual    += info['progresso']
+            
+            self.estado_anterior = self.estado_atual
+
+            if RENDER:  self.env.render()
+
+            if (self.progresso_atual > PROGRESSO_FINAL) or (self.tempo_atual > TEMPO_LIMITE):
+                done = True
+
+
+    def encerra_ambiente(self):
+        self.env.close()
