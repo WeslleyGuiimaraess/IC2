@@ -1,0 +1,44 @@
+{
+  "info": {
+    "1_coracao": {
+      "address": 528,
+      "type": "=u1"
+    },
+    "2_coracao": {
+      "address": 524,
+      "type": "=u1"
+    },
+    "3_coracao": {
+      "address": 520,
+      "type": "=u1"
+    },
+    "estrelas": {
+      "address": 1458,
+      "type": "=u1"
+    },
+    "flores": {
+      "address": 1454,
+      "type": "=u1"
+    },
+    "game_over": {
+      "address": 54,
+      "type": "=u1"
+    },
+    "mob": {
+      "address": 1122,
+      "type": "=u1"
+    },
+    "pegar_jogar": {
+      "address": 86,
+      "type": "=u1"
+    },
+    "progresso": {
+      "address": 25,
+      "type": "=u1"
+    },
+    "tempo": {
+      "address": 0,
+      "type": "=u1"
+    }
+  }
+}
