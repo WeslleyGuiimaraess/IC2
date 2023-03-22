@@ -1,0 +1,87 @@
+{
+  "crop": [
+    0,
+    0,
+    0,
+    0
+  ],
+  "done": {
+    "variables": {
+      "game_over": {
+        "op": "equal",
+        "reference": 2
+      },
+      "progresso": {
+        "op": "equal",
+        "reference": 160
+      }
+    }
+  },
+  "rewards": [
+    {
+      "variables": {
+        "1_coracao": {
+          "penalty": -100.0
+        },
+        "2_coracao": {
+          "penalty": -200.0
+        },
+        "3_coracao": {
+          "penalty": -500.0
+        },
+        "estrelas": {
+          "reward": 1000.0
+        },
+        "flores": {
+          "reward": 200.0
+        },
+        "game_over": {
+          "penalty": -1000.0
+        },
+        "mob": {
+          "reward": 5.0
+        },
+        "pegar_jogar": {
+          "op": "greater-than",
+          "reference": 129,
+          "reward": 50.0
+        },
+        "progresso": {
+          "op": "equal",
+          "reference": 1,
+          "reward": 1.0
+        }
+      }
+    },
+    {
+      "variables": {
+        "1_coracao": {
+          "penalty": -100.0
+        },
+        "2_coracao": {
+          "penalty": -200.0
+        },
+        "3_coracao": {
+          "penalty": -500.0
+        },
+        "estrelas": {
+          "reward": 1000.0
+        },
+        "flores": {
+          "reward": 200.0
+        },
+        "game_over": {
+          "penalty": -1000.0
+        },
+        "mob": {
+          "reward": 5.0
+        },
+        "pegar_jogar": {
+          "op": "greater-than",
+          "reference": 129,
+          "reward": 50.0
+        }
+      }
+    }
+  ]
+}
