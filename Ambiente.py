@@ -80,6 +80,8 @@ class Ambiente(object):
 
             if (self.progresso_atual > PROGRESSO_FINAL) or (self.tempo_atual > TEMPO_LIMITE):
                 done = True
+            
+            print(self.recompensa_total)
 
 
     def encerra_ambiente(self):
