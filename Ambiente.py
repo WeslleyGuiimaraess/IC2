@@ -1,5 +1,10 @@
 import retro
+import cv2 as cv
+import numpy as np
+from time import sleep
+
 from settings import *
+from Transformador import Transformador
 
 class Ambiente(object):
 
@@ -57,6 +62,8 @@ class Ambiente(object):
 
     def executa_com_movimentos_aleatorios(self):
 
+        t = Transformador()
+
         if self.env is None: return #verifica se há modo selecionado
 
         self.reinicia_ambiente()
@@ -64,9 +71,9 @@ class Ambiente(object):
         done = False 
         while(not done):
             
-            action = self.env.action_space.sample() #escolhe ação aleátoria
+            action = [0, 0, 0, 0, 0, 0, 0, 1, 0] #escolhe ação aleátoria
             if self.tipo_ambiente == 'COOP':
-                action += self.env.action_space.sample() # Permite movimentação do 2° jogador
+                action += [0, 0, 0, 0, 0, 0, 0, 1, 0] # Permite movimentação do 2° jogador
 
             obs, rew, done, info = self.env.step(action) #executa a ação e retorna o resultado da mesma
             self.estado_atual = info #pega informação atual do ambiente
@@ -76,7 +83,14 @@ class Ambiente(object):
             
             self.estado_anterior = self.estado_atual #atualiza o estadual anterior
 
-            if RENDER:  self.env.render() #permite a exibição da cena em modo gráfico
+            if RENDER:
+                _img = self.env.render(mode='rgb_array') #permite a exibição da cena em modo gráfico
+                _img2 = t.analisar(_img)
+
+                cv.imshow('Video Player', _img2)
+                cv.imshow('original', cv.cvtColor(_img * 2, cv.COLOR_BGR2RGB))
+                if cv.waitKey(25) & 0xFF == ord('q'):
+                    exit(0)
 
             if (self.progresso_atual > PROGRESSO_FINAL) or (self.tempo_atual > TEMPO_LIMITE):
                 done = True

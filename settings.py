@@ -15,6 +15,13 @@ ESTADO_INICIAL = {
     'mob'       : 0
 }
 
+OBJETOS = {
+    'red': ['cacto', 'cachorro'],
+    'blue': ['players'],
+    'green': ['maca', 'caixa']
+}
+
+
 TEMPO_LIMITE    = 10000 #tempo de cada episodio
 PROGRESSO_FINAL = 640 #valor que é registrado na memória quando o agente chega a um ponto x
 RENDER          = True #ver a tela

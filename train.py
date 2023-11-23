@@ -22,15 +22,15 @@ discount_factor = 0.99
 replay_memory_size = 100000
 
 # Variáveis de treinamento
-num_train_epochs = 10
-learning_steps_per_epoch = 1000
+num_train_epochs = 50
+learning_steps_per_epoch = 10000
 target_net_update_steps = 10
 
-model_savefolder = "./model/model/"
+model_savefolder = "./model/"
 
 #
 class DQNAgent:
-    def __init__(self, num_actions=9, epsilon=1, epsilon_min=0.1, epsilon_decay=0.9995, load=False):
+    def __init__(self, num_actions=9, epsilon=1, epsilon_min=0.1, epsilon_decay=0.98, load=False):
         print(num_actions)
         self.epsilon = epsilon
         self.epsilon_min = epsilon_min
@@ -152,7 +152,15 @@ def run(agent, env, replay_memory):
             if agent.epsilon < np.random.uniform(0,1):
                 action = int(tf.argmax(agent.dqn(tf.reshape(screen_buf, (1,20,30,1))), axis=1))
             else:
-                action = np.random.choice(range(env.env.action_space.n * 2), 1)[0]
+                if 0.5 > np.random.uniform(0,1):
+                    if 0.5 < np.random.uniform(0,1):
+                        action = np.random.choice(range(17, 19), 1)[0]
+                        #action = 17
+                    else:
+                        action = np.random.choice(range(8, 10), 1)[0]
+                        #action = 8
+                else:
+                    action = np.random.choice(range(env.env.action_space.n * 2), 1)[0]
             
             #observa a ação tomado pelo agente para poder dar a recompensa
             action_list = [1 if i==((action-1)%18) else 0 for i in range(env.env.action_space.n)]
@@ -200,7 +208,7 @@ def run(agent, env, replay_memory):
         print(f'Total score episode {episode}: {total_reward}')
         x.append(episode)
         y.append(total_reward)
-        agent.dqn.save_weights(f'./model/model_{episode}')
+        agent.dqn.save_weights(f'./model_{episode}')
 
         train_scores = np.array(train_scores)
 
