@@ -4,7 +4,6 @@ import numpy as np
 from time import sleep
 
 from settings import *
-from Transformador import Transformador
 
 class Ambiente(object):
 
@@ -84,13 +83,7 @@ class Ambiente(object):
             self.estado_anterior = self.estado_atual #atualiza o estadual anterior
 
             if RENDER:
-                _img = self.env.render(mode='rgb_array') #permite a exibição da cena em modo gráfico
-                _img2 = t.analisar(_img)
-
-                cv.imshow('Video Player', _img2)
-                cv.imshow('original', cv.cvtColor(_img * 2, cv.COLOR_BGR2RGB))
-                if cv.waitKey(25) & 0xFF == ord('q'):
-                    exit(0)
+                self.env.render() #permite a exibição da cena em modo gráfico
 
             if (self.progresso_atual > PROGRESSO_FINAL) or (self.tempo_atual > TEMPO_LIMITE):
                 done = True

@@ -12,9 +12,26 @@ class Transformador(object):
 
     
     def analisar(self, input_image):
-        _img = self.obter_cachorro(input_image)
+
+        _img_maca = self.obter_maca(input_image)
+        _img_caixa = self.obter_caixa(input_image)
+        _img_player = self.obter_player(input_image)
+        _img_cachoro = self.obter_cachorro(input_image)
+
+        r, g, b = input_image[:, :, 2], input_image[:, :, 1], input_image[:, :, 0]
+
+        _mask_green = cv.bitwise_or(_img_maca, _img_caixa)
+        _mask_blue  = _img_player
+        _mask_red   = _img_cachoro
+
+        _r = cv.bitwise_and(r, _mask_red)
+        _g = cv.bitwise_and(g, _mask_green)
+        _b = cv.bitwise_and(b, _mask_blue)
+
+        _img = np.stack((_b, _g, _r), axis=-1)
 
         return _img
+
 
     def obter_maca(self, _img):
 
@@ -26,11 +43,8 @@ class Transformador(object):
 
         mask = cv.medianBlur(mask, 7)
         mask = cv.erode(mask, kernel)
-        mask = np.stack((mask, mask, mask), axis=-1)
 
-        _img = cv.bitwise_and(_img, mask)
-
-        return _img
+        return mask
 
 
     def obter_caixa(self, _img):
@@ -44,11 +58,8 @@ class Transformador(object):
         mask = cv.medianBlur(mask, 3)
         mask = cv.erode(mask, kernel)
         mask = cv.dilate(mask, kernel, iterations=2)
-        mask = np.stack((mask, mask, mask), axis=-1)
 
-        _img = cv.bitwise_and(_img, mask)
-
-        return _img
+        return mask
 
 
     def obter_player(self, _img):
@@ -61,34 +72,30 @@ class Transformador(object):
 
         mask = cv.medianBlur(mask, 5)
         mask = cv.erode(mask, kernel)
-        mask = cv.dilate(mask, kernel, iterations=5)
-        mask = np.stack((mask, mask, mask), axis=-1)
+        mask = cv.dilate(mask, kernel, iterations=13)
 
-        _img = cv.bitwise_and(_img, mask)
-
-        return _img
+        return mask
 
 
     def obter_cachorro(self, _img):
 
-        lower_red = np.array([112, 120, 112])
-        upper_red = np.array([112, 120, 112]) 
+        lower_gray = np.array([184, 188, 184])
+        upper_gray = np.array([184, 188, 184]) 
 
-        kernel = np.ones((2,2), np.uint8)
-        mask = cv.inRange(_img, lower_red, upper_red)
+        kernel = np.ones((9,9), np.uint8)
+        mask = cv.inRange(_img, lower_gray, upper_gray)
 
-        # mask = cv.medianBlur(mask, 3)
-        # mask = cv.erode(mask, kernel)
-        # mask = cv.dilate(mask, kernel, iterations=7)
+        mask = cv.medianBlur(mask, 7)
+        mask = cv.erode(mask, kernel)
+        mask = cv.dilate(mask, kernel, iterations=5)
 
-        img_escala_cinza = cv.cvtColor(_img, cv.COLOR_BGR2GRAY)
-        img_desfoque = cv.GaussianBlur(img_escala_cinza, (11, 11), 0)
-        img_gradiente_contornos = cv.Canny(img_desfoque, 50, 100)
-        sobel = cv.Sobel(img_escala_cinza, -1, 1, 1)
+        _img_gray = cv.cvtColor(_img, cv.COLOR_BGR2GRAY)
+        sobel = cv.Sobel(_img_gray, -1, 0, 1)
 
+        kernel = np.ones((4, 4), np.uint8)
         _mask = cv.bitwise_and(sobel, mask, mask=None)
-        combinando_tecnicas = np.stack((_mask, _mask, _mask), axis=-1)
+        _mask = cv.erode(_mask, kernel)
+        _mask = cv.dilate(_mask, kernel, iterations=5)
+        ret, _mask = cv.threshold(_mask, 1, 255, cv.THRESH_BINARY)
 
-        _img = cv.bitwise_and(_img, combinando_tecnicas)
-
-        return _img
+        return _mask 

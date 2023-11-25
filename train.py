@@ -9,6 +9,8 @@ from tensorflow.keras.models import load_model
 from tensorflow.keras.optimizers import SGD
 from tensorflow.keras.layers import Conv2D, BatchNormalization, Flatten, Dense, ReLU
 
+from Transformador import Transformador
+
 import matplotlib.pyplot as plt
 
 from utils import split_tuple, extractDigits, preprocess, get_samples
@@ -31,7 +33,6 @@ model_savefolder = "./model/"
 #
 class DQNAgent:
     def __init__(self, num_actions=9, epsilon=1, epsilon_min=0.1, epsilon_decay=0.98, load=False):
-        print(num_actions)
         self.epsilon = epsilon
         self.epsilon_min = epsilon_min
         self.epsilon_decay = epsilon_decay
@@ -127,6 +128,9 @@ class DQN(Model):
 
 #teina o agente no ambiente(jogo)
 def run(agent, env, replay_memory):
+
+    t = Transformador()
+
     time_start = time()
     
     x = []
@@ -140,7 +144,7 @@ def run(agent, env, replay_memory):
 
         env.reinicia_ambiente()
 
-        next_screen_buf = preprocess(env.env.render(mode='rgb_array'))
+        next_screen_buf = preprocess(t.analisar(env.env.render(mode='rgb_array')))
         action = env.env.action_space.sample() + env.env.action_space.sample()
 
         env.env.step(action)
@@ -152,7 +156,7 @@ def run(agent, env, replay_memory):
             if agent.epsilon < np.random.uniform(0,1):
                 action = int(tf.argmax(agent.dqn(tf.reshape(screen_buf, (1,20,30,1))), axis=1))
             else:
-                if 0.5 > np.random.uniform(0,1):
+                if 0.8 > np.random.uniform(0,1):
                     if 0.5 < np.random.uniform(0,1):
                         action = np.random.choice(range(17, 19), 1)[0]
                         #action = 17
@@ -185,7 +189,7 @@ def run(agent, env, replay_memory):
 
             #pega o proximo frame para o agente tomar a decisão
             if not done:
-                next_screen_buf = preprocess(env.env.render(mode='rgb_array'))
+                next_screen_buf = preprocess(t.analisar(env.env.render(mode='rgb_array')))
             else:
                 next_screen_buf = tf.zeros(shape=screen_buf.shape)
 

@@ -21,9 +21,8 @@ OBJETOS = {
     'green': ['maca', 'caixa']
 }
 
+TEMPO_LIMITE    = 10000         # tempo de cada episodio
+PROGRESSO_FINAL = 120 # 640     # valor que é registrado na memória quando o agente chega a um ponto x
+RENDER          = False         # ver a tela
 
-TEMPO_LIMITE    = 10000 #tempo de cada episodio
-PROGRESSO_FINAL = 640 #valor que é registrado na memória quando o agente chega a um ponto x
-RENDER          = True #ver a tela
-
-EPISODIOS       = 5 #quantidade de episodios
+EPISODIOS       = 5             # quantidade de episodios
