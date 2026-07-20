@@ -33,6 +33,37 @@ class Transformador(object):
         return _img
 
 
+    def _centroides(self, mask):
+        # extrai os centróides (x, y) de cada objeto detectado numa máscara binária
+        contornos = cv.findContours(mask, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)[-2]
+        pontos = []
+        for c in contornos:
+            M = cv.moments(c)
+            if M['m00'] == 0:
+                continue
+            cx = int(M['m10'] / M['m00'])
+            cy = int(M['m01'] / M['m00'])
+            pontos.append((cx, cy))
+        return pontos
+
+
+    def extrair_coordenadas(self, input_image):
+        # retorna as coordenadas cartesianas dos objetos segmentados, usadas pela
+        # abordagem Q-Learning tabular e pelo controle por instinto (campos potenciais)
+        _img_maca = self.obter_maca(input_image)
+        _img_caixa = self.obter_caixa(input_image)
+        _img_player = self.obter_player(input_image)
+        _img_cachorro = self.obter_cachorro(input_image)
+
+        _mask_item = cv.bitwise_or(_img_maca, _img_caixa)
+
+        return {
+            'player':  self._centroides(_img_player),
+            'inimigo': self._centroides(_img_cachorro),
+            'item':    self._centroides(_mask_item),
+        }
+
+
     def obter_maca(self, _img):
 
         lower_red = np.array([216, 0, 0])

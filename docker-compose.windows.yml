@@ -1,0 +1,18 @@
+# Execução headless no Windows (Docker Desktop + WSL2).
+# Não usa X11: o treino só usa render(mode='rgb_array') com RENDER=False em settings.py.
+# Uso:  docker compose -f docker-compose.windows.yml up --build
+
+services:
+  app:
+    build: .
+    environment:
+      - MPLBACKEND=Agg        # matplotlib sem display (gera os PNGs em resultados/)
+      - PYTHONUNBUFFERED=1     # logs aparecem em tempo real
+      # Janela ao vivo do emulador: só tem efeito com RENDER=True em settings.py
+      # E com o VcXsrv aberto no Windows (ver instruções). Inofensivo se headless.
+      - DISPLAY=host.docker.internal:0.0
+      - LIBGL_ALWAYS_INDIRECT=1
+    volumes:
+      - .:/opt/poc            # monta o projeto; resultados/ e model/ aparecem no host
+    working_dir: /opt/poc
+    command: python main.py

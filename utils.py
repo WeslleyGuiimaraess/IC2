@@ -3,11 +3,8 @@ import skimage.color, skimage.transform
 import tensorflow as tf
 from random import sample
 
-# NN learning settings
-batch_size = 64
-
-# Other parameters
-resolution = (20, 30)
+# Configuração centralizada (batch_size, resolution) vem de settings.py
+from settings import batch_size, resolution
 
 def preprocess(img):
     img = skimage.color.rgb2gray(img)

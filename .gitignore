@@ -1,2 +1,10 @@
 __pycache__/*
 .env/
+
+# Saídas geradas pelo treino
+resultados/
+model/
+model_*/
+model_*.index
+model_*.data-*
+checkpoint

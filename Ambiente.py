@@ -45,17 +45,21 @@ class Ambiente(object):
 
 
     def pega_recompensa_atual(self):
+        # Pesos conforme a Tabela 1 (distribuição dos pontos por ação) do artigo:
+        #   Coletar Estrela +1000 | Coletar Flor +100 | Progredir +1 | Passar Tempo -1
+        #   1º Coração -100 | 2º Coração -500 | 3º Coração -1000
+        #   Pegar/Arremessar +10 | Derrotar Inimigo (mob) +500 | Game Over -1000
         return (
             (self.estado_atual['estrelas'] - self.estado_anterior['estrelas']) * 1000 \
-            + (self.estado_atual['flores'] - self.estado_anterior['flores']) * 200 \
+            + (self.estado_atual['flores'] - self.estado_anterior['flores']) * 100 \
             + (self.estado_atual['progresso'] != 0) * 1 \
             + (self.estado_atual['tempo'] != 0) * -1 \
             + (self.estado_atual['1_coracao'] != 24) * -100 \
-            + (self.estado_atual['2_coracao'] != 24) * -200 \
-            + (self.estado_atual['3_coracao'] != 24) * -500 \
-            + (self.estado_atual['pegar_jogar'] - self.estado_anterior['pegar_jogar']) * 1 \
+            + (self.estado_atual['2_coracao'] != 24) * -500 \
+            + (self.estado_atual['3_coracao'] != 24) * -1000 \
+            + (self.estado_atual['pegar_jogar'] - self.estado_anterior['pegar_jogar']) * 10 \
             + (self.estado_atual['game_over'] != 0) * -1000 \
-            + (self.estado_atual['mob'] - self.estado_anterior['mob']) * 1 \
+            + (self.estado_atual['mob'] - self.estado_anterior['mob']) * 500 \
         )
 
 
