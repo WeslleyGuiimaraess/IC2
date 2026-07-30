@@ -115,24 +115,31 @@ class Transformador(object):
 
 
     def obter_cachorro(self, _img):
-
-        lower_gray = np.array([184, 188, 184])
-        upper_gray = np.array([184, 188, 184]) 
-
-        kernel = np.ones((9,9), np.uint8)
+        # o cachorro é cinza (~184,188,184) — mesma cor de canos, poste e piso.
+        # detecta o cinza e separa o cachorro por FORMA/POSIÇÃO (blob compacto, fora do piso).
+        lower_gray = np.array([176, 180, 176])
+        upper_gray = np.array([192, 196, 192])
         mask = cv.inRange(_img, lower_gray, upper_gray)
+        mask = cv.medianBlur(mask, 3)
+        # erode p/ quebrar ligações finas (canos/piso), depois reforça o que sobrou
+        mask = cv.erode(mask, np.ones((2, 2), np.uint8), iterations=1)
+        mask = cv.dilate(mask, np.ones((3, 3), np.uint8), iterations=2)
+        # ignora o piso (faixa inferior da tela)
+        altura = mask.shape[0]
+        mask[int(altura * 0.85):, :] = 0
 
-        mask = cv.medianBlur(mask, 7)
-        mask = cv.erode(mask, kernel)
-        mask = cv.dilate(mask, kernel, iterations=5)
-
-        _img_gray = cv.cvtColor(_img, cv.COLOR_BGR2GRAY)
-        sobel = cv.Sobel(_img_gray, -1, 0, 1)
-
-        kernel = np.ones((4, 4), np.uint8)
-        _mask = cv.bitwise_and(sobel, mask, mask=None)
-        _mask = cv.erode(_mask, kernel)
-        _mask = cv.dilate(_mask, kernel, iterations=5)
-        ret, _mask = cv.threshold(_mask, 1, 255, cv.THRESH_BINARY)
-
-        return _mask 
+        # mantém só blobs ~quadrados de tamanho de personagem (descarta canos, poste, ruído).
+        # marca apenas o CENTRO do cachorro (detecção parcial, mais típica de CV clássica).
+        contornos = cv.findContours(mask, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)[-2]
+        _mask = np.zeros_like(mask)
+        for c in contornos:
+            x, y, cw, ch = cv.boundingRect(c)
+            area = cw * ch
+            aspecto = cw / (ch + 1e-6)
+            if 250 <= area <= 3000 and 0.5 <= aspecto <= 2.0:
+                M = cv.moments(c)
+                if M['m00'] > 0:
+                    cx = int(M['m10'] / M['m00'])
+                    cy = int(M['m01'] / M['m00'])
+                    cv.circle(_mask, (cx, cy), 8, 255, -1)
+        return _mask
