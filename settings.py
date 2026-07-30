@@ -31,17 +31,21 @@ TEMPO_LIMITE    = 10000         # tempo (passos) máximo de cada episódio
 PROGRESSO_FINAL = 160           # progresso que encerra o episódio (bate com scenario.json)
 RENDER          = False         # exibir a tela do emulador
 
+# Recompensa de avanço: prêmio por pixel que o player anda para a direita (progresso/
+# exploração na fase). Sem isso o agente guloso fica parado no início.
+RECOMPENSA_AVANCO = 1.0
+
 # =========================================================================
 # Seleção da abordagem (Capítulo 3 do artigo)
 #   'dqn_raw'      -> DQN sem filtro (baseline de pixels brutos)
 #   'dqn_filtrado' -> DQN com filtro de cor (imagem segmentada)
 #   'qlearning'    -> Q-Learning tabular (coordenadas -> grid -> Q-table)
 # =========================================================================
-ABORDAGEM = 'qlearning'
+ABORDAGEM = 'dqn_filtrado'
 
 # Número de episódios de treino (fonte única; antes duplicado como
 # num_train_epochs=50 em train.py e EPISODIOS=5 aqui)
-EPISODIOS = 20  # config moderada p/ 1ª sessão ao vivo; artigo usa 50
+EPISODIOS = 100  # rodada de ~2h (frame skip 4); artigo usa 50
 
 # =========================================================================
 # Pré-processamento / entrada da rede
@@ -54,7 +58,7 @@ RESULTADOS_DIR   = os.path.join(PROJECT_DIR, "resultados")
 # Captura de frames para as figuras da dissertação (PNG em resultados/frames/)
 # =========================================================================
 CAPTURAR_FRAMES   = False           # captura DURANTE o treino (cuidado: treino cheio gera muitos PNGs)
-CAPTURA_INTERVALO = 30              # salva a cada N passos
+CAPTURA_INTERVALO = 12              # salva a cada N passos (mais denso = GIF mais fluido)
 FRAMES_DIR        = os.path.join(RESULTADOS_DIR, "frames")
 
 # =========================================================================
@@ -63,9 +67,12 @@ FRAMES_DIR        = os.path.join(RESULTADOS_DIR, "frames")
 # (precisa do VcXsrv) e salva os frames da avaliação em resultados/frames/.
 # =========================================================================
 ASSISTIR_APOS_TREINO = True
-PASSOS_AVALIACAO     = 3000          # limite de passos do episódio de avaliação
-RENDER_AVALIACAO     = True          # abre a janela ao vivo no episódio de avaliação (precisa do VcXsrv)
+PASSOS_AVALIACAO     = 3000          # passos da avaliação (avaliação gulosa da política aprendida)
+RENDER_AVALIACAO     = False         # janela ao vivo (VcXsrv); desligada: geramos GIF headless
 CAPTURAR_AVALIACAO   = True          # salva frame bruto + segmentado do episódio de avaliação (para as figuras)
+DELAY_AVALIACAO      = 0.05          # pausa (s) por passo na janela ao vivo, p/ dar pra assistir (0 = máx. velocidade)
+EPSILON_AVALIACAO    = 0.0           # exploração no episódio assistido (0 = 100% guloso). Só afeta o GIF/janela, não as métricas
+VIES_DIREITA_AVALIACAO = False       # True: exploração da avaliação anda p/ direita (demo de travessia); False: aleatória/gulosa
 
 # =========================================================================
 # Hiperparâmetros do DQN
@@ -74,7 +81,12 @@ batch_size              = 64
 learning_rate           = 0.00025
 discount_factor         = 0.99
 replay_memory_size      = 100000
-learning_steps_per_epoch = 3000  # config moderada p/ 1ª sessão; artigo usa 10000
+learning_steps_per_epoch = 3000  # rodada de ~2h (artigo usa 10000)
+
+# Frame skip: nº de frames que o agente repete a mesma ação por decisão (acelera o
+# treino, pois a CV/rede roda 1x por decisão em vez de K). Só afeta o treino, não a
+# avaliação. 1 = sem skip; 4 é o padrão da literatura (Atari DQN).
+FRAME_SKIP = 4
 target_net_update_steps = 10
 
 # Exploração (ε-greedy) do DQN
@@ -92,8 +104,8 @@ QL_EPSILON_MIN   = 0.1
 QL_EPSILON_DECAY = 0.9999
 
 # Discretização das coordenadas em grade (Etapa 2 / Q-Learning)
-GRID_W = 16
-GRID_H = 16
+GRID_W = 6
+GRID_H = 6
 
 # =========================================================================
 # Chaveamento reativo por instinto (Etapa 4 - Campos Potenciais)

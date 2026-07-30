@@ -16,6 +16,7 @@ class Ambiente(object):
         self.recompensa_total   = None
         self.tempo_atual        = None
         self.progresso_atual    = None
+        self.player_x_ant       = None # última posição x do player (recompensa de avanço)
 
         self.tipo_ambiente      = None # 'COOP' ou 'SING'
 
@@ -42,7 +43,19 @@ class Ambiente(object):
         self.recompensa_total   = 0
         self.tempo_atual        = 0
         self.progresso_atual    = 0
+        self.player_x_ant       = None
 
+
+    # ignora saltos grandes (reset do jogo / estouro do byte u8) que não são eventos reais
+    @staticmethod
+    def _delta(atual, anterior, limite=32):
+        d = atual - anterior
+        return d if abs(d) <= limite else 0
+
+    # True apenas no passo em que 'chave' deixa de ser o valor "bom" (evento, não estado).
+    # Evita punir a cada passo enquanto o agente fica morto/ferido.
+    def _virou_ruim(self, chave, valor_bom):
+        return self.estado_atual[chave] != valor_bom and self.estado_anterior[chave] == valor_bom
 
     def pega_recompensa_atual(self):
         # Pesos conforme a Tabela 1 (distribuição dos pontos por ação) do artigo:
@@ -50,17 +63,31 @@ class Ambiente(object):
         #   1º Coração -100 | 2º Coração -500 | 3º Coração -1000
         #   Pegar/Arremessar +10 | Derrotar Inimigo (mob) +500 | Game Over -1000
         return (
-            (self.estado_atual['estrelas'] - self.estado_anterior['estrelas']) * 1000 \
-            + (self.estado_atual['flores'] - self.estado_anterior['flores']) * 100 \
-            + (self.estado_atual['progresso'] != 0) * 1 \
-            + (self.estado_atual['tempo'] != 0) * -1 \
-            + (self.estado_atual['1_coracao'] != 24) * -100 \
-            + (self.estado_atual['2_coracao'] != 24) * -500 \
-            + (self.estado_atual['3_coracao'] != 24) * -1000 \
-            + (self.estado_atual['pegar_jogar'] - self.estado_anterior['pegar_jogar']) * 10 \
-            + (self.estado_atual['game_over'] != 0) * -1000 \
-            + (self.estado_atual['mob'] - self.estado_anterior['mob']) * 500 \
+            self._delta(self.estado_atual['estrelas'], self.estado_anterior['estrelas']) * 1000
+            + self._delta(self.estado_atual['flores'], self.estado_anterior['flores']) * 100
+            + (self.estado_atual['progresso'] != 0) * 1
+            + (self.estado_atual['tempo'] != 0) * -1
+            + self._virou_ruim('1_coracao', 24) * -100
+            + self._virou_ruim('2_coracao', 24) * -500
+            + self._virou_ruim('3_coracao', 24) * -1000
+            + self._delta(self.estado_atual['pegar_jogar'], self.estado_anterior['pegar_jogar']) * 10
+            + self._virou_ruim('game_over', 0) * -1000
+            + self._delta(self.estado_atual['mob'], self.estado_anterior['mob']) * 500
         )
+
+    # incentiva o agente a avançar para a direita (progresso/exploração na fase).
+    # Sem esse termo, o agente guloso não tem motivo pra sair do ponto inicial.
+    def recompensa_avanco(self, player_x):
+        if player_x is None:
+            return 0.0
+        if self.player_x_ant is None:
+            self.player_x_ant = player_x
+            return 0.0
+        d = player_x - self.player_x_ant
+        self.player_x_ant = player_x
+        if 0 < d <= 40:  # movimento à direita; ignora saltos grandes (troca de tela)
+            return RECOMPENSA_AVANCO * d
+        return 0.0
 
 
     def executa_com_movimentos_aleatorios(self):

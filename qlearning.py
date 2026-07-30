@@ -1,13 +1,14 @@
 import numpy as np
 
 from collections import defaultdict
-from time import perf_counter
+from time import perf_counter, sleep
 from tqdm import trange
 
 from settings import *
 from Transformador import Transformador
 from campos_potenciais import acao_por_instinto
 from captura import salvar_frames
+from utils import acao_exploracao
 
 
 # =========================================================================
@@ -84,11 +85,10 @@ class QLearningAgent:
             self.epsilon = self.epsilon_min
 
 
-# constrói o vetor de ação (coop, 2 jogadores) — mesmo encoding usado em train.py
+# constrói o vetor de ação — o espaço é MultiBinary(18) (9 botões x 2 jogadores),
+# então o vetor tem 18 posições (antes duplicava para 36, tamanho inválido)
 def _monta_action_list(action, n_botoes):
-    lst = [1 if k == ((action - 1) % 18) else 0 for k in range(n_botoes)]
-    lst += [1 if k == ((action - 1) % 18) else 0 for k in range(n_botoes)]
-    return lst
+    return [1 if k == ((action - 1) % 18) else 0 for k in range(n_botoes)]
 
 
 #treina o agente Q-Learning tabular no ambiente
@@ -138,19 +138,25 @@ def run_qlearning(agent, env, coletor=None):
 
             action_list = _monta_action_list(action, env.env.action_space.n)
 
-            observation, reward, done, info = env.env.step(action_list)
-            env.estado_atual = info
-            env.progresso_atual += info['progresso']
+            #frame skip: repete a ação por FRAME_SKIP frames (acelera o treino)
+            reward = 0.0
+            for _ in range(FRAME_SKIP):
+                observation, _r, done, info = env.env.step(action_list)
+                env.estado_atual = info
+                env.progresso_atual += info['progresso']
+                reward += float(env.pega_recompensa_atual())
+                env.tempo_atual += 1
+                env.estado_anterior = env.estado_atual
+                if (env.progresso_atual > PROGRESSO_FINAL) or (env.tempo_atual > TEMPO_LIMITE):
+                    done = True
+                if done:
+                    break
 
-            reward = float(env.pega_recompensa_atual())
+            _players = coords_atual.get('player') or []
+            reward += env.recompensa_avanco(_players[0][0] if _players else None)
             total_reward += reward
 
-            env.tempo_atual += 1
-            env.estado_anterior = env.estado_atual
             if RENDER:  env.env.render()
-
-            if (env.progresso_atual > PROGRESSO_FINAL) or (env.tempo_atual > TEMPO_LIMITE):
-                done = True
 
             if not done:
                 cv_ini = perf_counter()
@@ -199,15 +205,20 @@ def assistir_qlearning(agent, env):
     passo = 0
     ao_vivo = RENDER_AVALIACAO
     print("\n=== Episódio de avaliação (assistir) ===")
-    while not done and passo < PASSOS_AVALIACAO:
-        action = int(np.argmax(agent.valores_q(estado)))  #ação gulosa (sem exploração)
+    while passo < PASSOS_AVALIACAO:
+        #ε-greedy na avaliação: exploração p/ o agente se movimentar (só afeta o GIF/janela)
+        if np.random.uniform(0, 1) < EPSILON_AVALIACAO:
+            action = acao_exploracao(agent.num_actions, VIES_DIREITA_AVALIACAO)
+        else:
+            action = int(np.argmax(agent.valores_q(estado)))
 
         action_list = _monta_action_list(action, env.env.action_space.n)
 
         observation, reward, done, info = env.env.step(action_list)
         env.estado_atual = info
         env.progresso_atual += info['progresso']
-        total_reward += float(env.pega_recompensa_atual())
+        _players = coords.get('player') or []
+        total_reward += float(env.pega_recompensa_atual()) + env.recompensa_avanco(_players[0][0] if _players else None)
         env.tempo_atual += 1
         env.estado_anterior = env.estado_atual
 
@@ -217,16 +228,20 @@ def assistir_qlearning(agent, env):
             except Exception as e:
                 print(f"[aviso] janela ao vivo indisponível ({e}); seguindo com os frames salvos.")
                 ao_vivo = False
+            if ao_vivo and DELAY_AVALIACAO:
+                sleep(DELAY_AVALIACAO)
         if CAPTURAR_AVALIACAO and (passo % CAPTURA_INTERVALO == 0):
             salvar_frames(f'aval_{ABORDAGEM}', 0, passo, frame, t)
 
         if (env.progresso_atual > PROGRESSO_FINAL) or (env.tempo_atual > TEMPO_LIMITE):
             done = True
 
-        if not done:
-            frame = env.env.render(mode='rgb_array')
-            coords = t.extrair_coordenadas(frame)
-            estado = monta_estado(coords, largura, altura)
+        #reseta e continua ao terminar, mantendo a janela aberta até completar os passos
+        if done:
+            env.reinicia_ambiente()
+        frame = env.env.render(mode='rgb_array')
+        coords = t.extrair_coordenadas(frame)
+        estado = monta_estado(coords, largura, altura)
         passo += 1
 
     print(f'Recompensa do episódio de avaliação: {total_reward}')

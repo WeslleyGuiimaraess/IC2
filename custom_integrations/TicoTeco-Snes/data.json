@@ -37,7 +37,7 @@
       "type": "=u1"
     },
     "tempo": {
-      "address": 0,
+      "address": 1041,
       "type": "=u1"
     }
   }

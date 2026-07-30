@@ -15,7 +15,7 @@ from captura import salvar_frames
 
 import matplotlib.pyplot as plt
 
-from utils import split_tuple, extractDigits, preprocess, get_samples
+from utils import split_tuple, extractDigits, preprocess, get_samples, acao_exploracao
 
 # Toda a configuração de aprendizado (batch_size, learning_rate, discount_factor,
 # replay_memory_size, EPISODIOS, learning_steps_per_epoch, target_net_update_steps,
@@ -188,26 +188,28 @@ def run_dqn(agent, env, replay_memory, usar_filtro=True, coletor=None):
             #registra o tempo do frame (percepção + decisão)
             if coletor: coletor.registra_frame(cv_ms, dec_ms)
 
-            #observa a ação tomado pelo agente para poder dar a recompensa
-            action_list = [1 if i==((action-1)%18) else 0 for i in range(env.env.action_space.n)]
-            action_list += [1 if i==((action-1)%18) else 0 for i in range(env.env.action_space.n)]
+            #observa a ação tomada pelo agente (vetor MultiBinary(18): 9 botões x 2 jogadores)
+            action_list = [1 if k==((action-1)%18) else 0 for k in range(env.env.action_space.n)]
 
-            observation, reward, done, info = env.env.step(action_list)
-            env.estado_atual = info #pega informação atual do ambiente
-            env.progresso_atual    += info['progresso'] #atualiza o progresso
+            #frame skip: repete a ação por FRAME_SKIP frames (acelera; 1 CV/decisão em vez de K)
+            reward = 0.0
+            for _ in range(FRAME_SKIP):
+                observation, _r, done, info = env.env.step(action_list)
+                env.estado_atual = info #pega informação atual do ambiente
+                env.progresso_atual += info['progresso'] #atualiza o progresso
+                reward += float(env.pega_recompensa_atual())
+                env.tempo_atual += 1
+                env.estado_anterior = env.estado_atual #atualiza o estado anterior
+                if (env.progresso_atual > PROGRESSO_FINAL) or (env.tempo_atual > TEMPO_LIMITE):
+                    done = True
+                if done:
+                    break
 
-            #soma o valor da recompensa acumulando o total
-            reward = float(env.pega_recompensa_atual())
-
+            #recompensa de avanço (CV leve) uma vez por decisão
+            reward += env.recompensa_avanco(t.player_x(frame_atual))
             total_reward += reward
 
-            env.tempo_atual += 1
-
-            env.estado_anterior = env.estado_atual #atualiza o estadual anterior
             if RENDER:  env.env.render() #permite a exibição da cena em modo gráfico
-
-            if (env.progresso_atual > PROGRESSO_FINAL) or (env.tempo_atual > TEMPO_LIMITE):
-                done = True
 
             #pega o proximo frame para o agente tomar a decisão (cronometra o pipeline de CV)
             if not done:
@@ -259,12 +261,14 @@ def assistir_dqn(agent, env, usar_filtro=True):
     passo = 0
     ao_vivo = RENDER_AVALIACAO
     print("\n=== Episódio de avaliação (assistir) ===")
-    while not done and passo < PASSOS_AVALIACAO:
-        #ação gulosa: sempre o maior Q (sem exploração)
-        action = int(tf.argmax(agent.dqn(tf.reshape(screen_buf, (1,) + resolution + (1,))), axis=1))
+    while passo < PASSOS_AVALIACAO:
+        #ε-greedy na avaliação: exploração p/ o agente se movimentar (só afeta o GIF/janela)
+        if np.random.uniform(0, 1) < EPSILON_AVALIACAO:
+            action = acao_exploracao(agent.num_actions, VIES_DIREITA_AVALIACAO)
+        else:
+            action = int(tf.argmax(agent.dqn(tf.reshape(screen_buf, (1,) + resolution + (1,))), axis=1))
 
         action_list = [1 if k == ((action-1)%18) else 0 for k in range(env.env.action_space.n)]
-        action_list += [1 if k == ((action-1)%18) else 0 for k in range(env.env.action_space.n)]
 
         observation, reward, done, info = env.env.step(action_list)
         env.estado_atual = info
@@ -279,15 +283,19 @@ def assistir_dqn(agent, env, usar_filtro=True):
             except Exception as e:
                 print(f"[aviso] janela ao vivo indisponível ({e}); seguindo com os frames salvos.")
                 ao_vivo = False
+            if ao_vivo and DELAY_AVALIACAO:
+                sleep(DELAY_AVALIACAO)
         if CAPTURAR_AVALIACAO and (passo % CAPTURA_INTERVALO == 0):
             salvar_frames(f'aval_{ABORDAGEM}', 0, passo, frame, t)
 
         if (env.progresso_atual > PROGRESSO_FINAL) or (env.tempo_atual > TEMPO_LIMITE):
             done = True
 
-        if not done:
-            frame = env.env.render(mode='rgb_array')
-            screen_buf = processa_frame(t, frame, usar_filtro)
+        #reseta e continua ao terminar, mantendo a janela aberta até completar os passos
+        if done:
+            env.reinicia_ambiente()
+        frame = env.env.render(mode='rgb_array')
+        screen_buf = processa_frame(t, frame, usar_filtro)
         passo += 1
 
     print(f'Recompensa do episódio de avaliação: {total_reward}')

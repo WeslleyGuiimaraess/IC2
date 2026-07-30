@@ -39,3 +39,16 @@ def get_samples(memory):
         sample_size = batch_size
 
     return sample(memory, sample_size)
+
+
+# ação de exploração para o episódio de avaliação.
+# vies_direita=True: prioriza andar para a direita (+ pular) para o agente atravessar
+# a fase na demonstração; caso contrário, ação aleatória uniforme.
+def acao_exploracao(num_actions, vies_direita=False):
+    if vies_direita:
+        r = np.random.uniform(0, 1)
+        if r < 0.7:
+            return 8   # andar para a direita (p1 RIGHT)
+        if r < 0.85:
+            return 9   # pular (p1 A) — ajuda a passar obstáculos
+    return int(np.random.randint(num_actions))

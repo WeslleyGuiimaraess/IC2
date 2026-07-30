@@ -64,6 +64,12 @@ class Transformador(object):
         }
 
 
+    def player_x(self, input_image):
+        # apenas o x do centróide do player — leve (1 máscara), p/ a recompensa de avanço
+        pts = self._centroides(self.obter_player(input_image))
+        return pts[0][0] if pts else None
+
+
     def obter_maca(self, _img):
 
         lower_red = np.array([216, 0, 0])
