@@ -88,7 +88,10 @@ class QLearningAgent:
 # constrói o vetor de ação — o espaço é MultiBinary(18) (9 botões x 2 jogadores),
 # então o vetor tem 18 posições (antes duplicava para 36, tamanho inválido)
 def _monta_action_list(action, n_botoes):
-    return [1 if k == ((action - 1) % 18) else 0 for k in range(n_botoes)]
+    # espelha o botão escolhido nos DOIS jogadores (coop): índice b (p1) e b+9 (p2),
+    # para Chip e Dale agirem juntos (antes só um jogador recebia o comando)
+    botao = (action - 1) % 9
+    return [1 if (k == botao or k == botao + 9) else 0 for k in range(n_botoes)]
 
 
 #treina o agente Q-Learning tabular no ambiente
@@ -125,7 +128,7 @@ def run_qlearning(agent, env, coletor=None):
             # seleção de ação (ε-greedy) com chaveamento reativo por instinto (Etapa 4)
             dec_ini = perf_counter()
             if np.random.uniform(0, 1) < agent.epsilon:
-                action = int(np.random.randint(agent.num_actions))
+                action = acao_exploracao(agent.num_actions, VIES_DIREITA_TREINO)
             elif ATIVAR_INSTINTO and float(np.max(agent.valores_q(estado))) < TAU:
                 action = acao_por_instinto(coords_atual, largura, altura)
             else:

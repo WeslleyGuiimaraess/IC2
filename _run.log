@@ -5,244 +5,44 @@
 Attaching to app-1
  Container ic2-app-1 Starting 
  Container ic2-app-1 Started 
-app-1  | 2026-07-30 10:45:18.751739: I tensorflow/tsl/cuda/cudart_stub.cc:28] Could not find cuda drivers on your machine, GPU will not be used.
-app-1  | 2026-07-30 10:45:18.889206: I tensorflow/tsl/cuda/cudart_stub.cc:28] Could not find cuda drivers on your machine, GPU will not be used.
-app-1  | 2026-07-30 10:45:18.892350: I tensorflow/core/platform/cpu_feature_guard.cc:182] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+app-1  | 2026-07-30 19:22:17.232448: I tensorflow/tsl/cuda/cudart_stub.cc:28] Could not find cuda drivers on your machine, GPU will not be used.
+app-1  | 2026-07-30 19:22:17.301813: I tensorflow/tsl/cuda/cudart_stub.cc:28] Could not find cuda drivers on your machine, GPU will not be used.
+app-1  | 2026-07-30 19:22:17.303228: I tensorflow/core/platform/cpu_feature_guard.cc:182] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
 app-1  | To enable the following instructions: AVX2 FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
-app-1  | 2026-07-30 10:45:21.857198: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+app-1  | 2026-07-30 19:22:18.702307: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
 app-1  | Abordagem selecionada: dqn_filtrado
 app-1  | 
 app-1  | Epoch 1
 app-1  | -------
-app-1  | Total score episode 0: -4987.0
+app-1  | Total score episode 0: 1031.049999999992
 app-1  | 
 app-1  | Epoch 2
 app-1  | -------
-app-1  | Total score episode 1: -9842.0
+app-1  | Total score episode 1: 1315.8499999999901
 app-1  | 
 app-1  | Epoch 3
 app-1  | -------
-app-1  | Total score episode 2: -13896.0
+app-1  | Total score episode 2: 1723.9499999999873
 app-1  | 
 app-1  | Epoch 4
 app-1  | -------
-app-1  | Total score episode 3: -14237.0
+app-1  | Total score episode 3: 384.00000000001
 app-1  | 
 app-1  | Epoch 5
 app-1  | -------
-app-1  | Total score episode 4: -13833.0
+app-1  | Total score episode 4: 223.1000000000098
 app-1  | 
 app-1  | Epoch 6
 app-1  | -------
-app-1  | Total score episode 5: -15013.0
+app-1  | Total score episode 5: 228.60000000000943
 app-1  | 
 app-1  | Epoch 7
 app-1  | -------
-app-1  | Total score episode 6: -8950.0
+app-1  | Total score episode 6: 349.2500000000104
 app-1  | 
 app-1  | Epoch 8
 app-1  | -------
-app-1  | Total score episode 7: -14307.0
+app-1  | Total score episode 7: 1162.1999999999812
 app-1  | 
 app-1  | Epoch 9
-app-1  | -------
-app-1  | Total score episode 8: -11564.0
-app-1  | 
-app-1  | Epoch 10
-app-1  | -------
-app-1  | Total score episode 9: -14355.0
-app-1  | 
-app-1  | Epoch 11
-app-1  | -------
-app-1  | Total score episode 10: -8635.0
-app-1  | 
-app-1  | Epoch 12
-app-1  | -------
-app-1  | Total score episode 11: -7961.0
-app-1  | 
-app-1  | Epoch 13
-app-1  | -------
-app-1  | Total score episode 12: -8499.0
-app-1  | 
-app-1  | Epoch 14
-app-1  | -------
-app-1  | Total score episode 13: -15224.0
-app-1  | 
-app-1  | Epoch 15
-app-1  | -------
-app-1  | Total score episode 14: -10824.0
-app-1  | 
-app-1  | Epoch 16
-app-1  | -------
-app-1  | Total score episode 15: -14562.0
-app-1  | 
-app-1  | Epoch 17
-app-1  | -------
-app-1  | Total score episode 16: -8421.0
-app-1  | 
-app-1  | Epoch 18
-app-1  | -------
-app-1  | Total score episode 17: -13490.0
-app-1  | 
-app-1  | Epoch 19
-app-1  | -------
-app-1  | Total score episode 18: -14546.0
-app-1  | 
-app-1  | Epoch 20
-app-1  | -------
-app-1  | Total score episode 19: -13497.0
-app-1  | 
-app-1  | Epoch 21
-app-1  | -------
-app-1  | Total score episode 20: -13709.0
-app-1  | 
-app-1  | Epoch 22
-app-1  | -------
-app-1  | Total score episode 21: -14760.0
-app-1  | 
-app-1  | Epoch 23
-app-1  | -------
-app-1  | Total score episode 22: -9596.0
-app-1  | 
-app-1  | Epoch 24
-app-1  | -------
-app-1  | Total score episode 23: -14560.0
-app-1  | 
-app-1  | Epoch 25
-app-1  | -------
-app-1  | Total score episode 24: -14716.0
-app-1  | 
-app-1  | Epoch 26
-app-1  | -------
-app-1  | Total score episode 25: -9464.0
-app-1  | 
-app-1  | Epoch 27
-app-1  | -------
-app-1  | Total score episode 26: -11537.0
-app-1  | 
-app-1  | Epoch 28
-app-1  | -------
-app-1  | Total score episode 27: -13722.0
-app-1  | 
-app-1  | Epoch 29
-app-1  | -------
-app-1  | Total score episode 28: -14693.0
-app-1  | 
-app-1  | Epoch 30
-app-1  | -------
-app-1  | Total score episode 29: -11617.0
-app-1  | 
-app-1  | Epoch 31
-app-1  | -------
-app-1  | Total score episode 30: -14653.0
-app-1  | 
-app-1  | Epoch 32
-app-1  | -------
-app-1  | Total score episode 31: -8741.0
-app-1  | 
-app-1  | Epoch 33
-app-1  | -------
-app-1  | Total score episode 32: -9592.0
-app-1  | 
-app-1  | Epoch 34
-app-1  | -------
-app-1  | Total score episode 33: -14525.0
-app-1  | 
-app-1  | Epoch 35
-app-1  | -------
-app-1  | Total score episode 34: -14523.0
-app-1  | 
-app-1  | Epoch 36
-app-1  | -------
-app-1  | Total score episode 35: -13956.0
-app-1  | 
-app-1  | Epoch 37
-app-1  | -------
-app-1  | Total score episode 36: -14138.0
-app-1  | 
-app-1  | Epoch 38
-app-1  | -------
-app-1  | Total score episode 37: -14068.0
-app-1  | 
-app-1  | Epoch 39
-app-1  | -------
-app-1  | Total score episode 38: -9106.0
-app-1  | 
-app-1  | Epoch 40
-app-1  | -------
-app-1  | Total score episode 39: -14480.0
-app-1  | 
-app-1  | Epoch 41
-app-1  | -------
-app-1  | Total score episode 40: -14916.0
-app-1  | 
-app-1  | Epoch 42
-app-1  | -------
-app-1  | Total score episode 41: -13732.0
-app-1  | 
-app-1  | Epoch 43
-app-1  | -------
-app-1  | Total score episode 42: -11534.0
-app-1  | 
-app-1  | Epoch 44
-app-1  | -------
-app-1  | Total score episode 43: -15083.0
-app-1  | 
-app-1  | Epoch 45
-app-1  | -------
-app-1  | Total score episode 44: -14762.0
-app-1  | 
-app-1  | Epoch 46
-app-1  | -------
-app-1  | Total score episode 45: -8030.0
-app-1  | 
-app-1  | Epoch 47
-app-1  | -------
-app-1  | Total score episode 46: -14279.0
-app-1  | 
-app-1  | Epoch 48
-app-1  | -------
-app-1  | Total score episode 47: -14464.0
-app-1  | 
-app-1  | Epoch 49
-app-1  | -------
-app-1  | Total score episode 48: -10574.0
-app-1  | 
-app-1  | Epoch 50
-app-1  | -------
-app-1  | Total score episode 49: -14618.0
-app-1  | 
-app-1  | Epoch 51
-app-1  | -------
-app-1  | Total score episode 50: -14251.0
-app-1  | 
-app-1  | Epoch 52
-app-1  | -------
-app-1  | Total score episode 51: -9600.0
-app-1  | 
-app-1  | Epoch 53
-app-1  | -------
-app-1  | Total score episode 52: -14764.0
-app-1  | 
-app-1  | Epoch 54
-app-1  | -------
-app-1  | Total score episode 53: -10003.0
-app-1  | 
-app-1  | Epoch 55
-app-1  | -------
-app-1  | Total score episode 54: -14539.0
-app-1  | 
-app-1  | Epoch 56
-app-1  | -------
-app-1  | Total score episode 55: -10833.0
-app-1  | 
-app-1  | Epoch 57
-app-1  | -------
-app-1  | Total score episode 56: -14625.0
-app-1  | 
-app-1  | Epoch 58
-app-1  | -------
-app-1  | Total score episode 57: -14598.0
-app-1  | 
-app-1  | Epoch 59
 app-1  | -------

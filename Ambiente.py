@@ -66,7 +66,7 @@ class Ambiente(object):
             self._delta(self.estado_atual['estrelas'], self.estado_anterior['estrelas']) * 1000
             + self._delta(self.estado_atual['flores'], self.estado_anterior['flores']) * 100
             + (self.estado_atual['progresso'] != 0) * 1
-            + (self.estado_atual['tempo'] != 0) * -1
+            + (self.estado_atual['tempo'] != 0) * PESO_TEMPO
             + self._virou_ruim('1_coracao', 24) * -100
             + self._virou_ruim('2_coracao', 24) * -500
             + self._virou_ruim('3_coracao', 24) * -1000

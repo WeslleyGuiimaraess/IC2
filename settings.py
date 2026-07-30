@@ -32,8 +32,17 @@ PROGRESSO_FINAL = 160           # progresso que encerra o episódio (bate com sc
 RENDER          = False         # exibir a tela do emulador
 
 # Recompensa de avanço: prêmio por pixel que o player anda para a direita (progresso/
-# exploração na fase). Sem isso o agente guloso fica parado no início.
+# exploração na fase). É o sinal DENSO que guia o aprendizado.
 RECOMPENSA_AVANCO = 1.0
+
+# Peso da penalidade de tempo por frame. Precisa ser PEQUENO: com -1 (fixo antigo) a
+# penalidade de tempo dominava a recompensa e afogava o sinal de aprendizado.
+PESO_TEMPO = -0.05
+
+# Viés de exploração no TREINO: prioriza andar para a direita durante a exploração,
+# para o agente vivenciar (e aprender) que avançar dá recompensa. Ajuda a política
+# gulosa a consolidar o "andar", em vez de ficar parada.
+VIES_DIREITA_TREINO = False
 
 # =========================================================================
 # Seleção da abordagem (Capítulo 3 do artigo)
@@ -45,7 +54,7 @@ ABORDAGEM = 'dqn_filtrado'
 
 # Número de episódios de treino (fonte única; antes duplicado como
 # num_train_epochs=50 em train.py e EPISODIOS=5 aqui)
-EPISODIOS = 100  # rodada de ~2h (frame skip 4); artigo usa 50
+EPISODIOS = 25  # resultado final (caminho A): curva + vídeo guiado
 
 # =========================================================================
 # Pré-processamento / entrada da rede
@@ -67,12 +76,12 @@ FRAMES_DIR        = os.path.join(RESULTADOS_DIR, "frames")
 # (precisa do VcXsrv) e salva os frames da avaliação em resultados/frames/.
 # =========================================================================
 ASSISTIR_APOS_TREINO = True
-PASSOS_AVALIACAO     = 3000          # passos da avaliação (avaliação gulosa da política aprendida)
+PASSOS_AVALIACAO     = 4000          # passos da avaliação (vídeo maior de travessia)
 RENDER_AVALIACAO     = False         # janela ao vivo (VcXsrv); desligada: geramos GIF headless
 CAPTURAR_AVALIACAO   = True          # salva frame bruto + segmentado do episódio de avaliação (para as figuras)
 DELAY_AVALIACAO      = 0.05          # pausa (s) por passo na janela ao vivo, p/ dar pra assistir (0 = máx. velocidade)
-EPSILON_AVALIACAO    = 0.0           # exploração no episódio assistido (0 = 100% guloso). Só afeta o GIF/janela, não as métricas
-VIES_DIREITA_AVALIACAO = False       # True: exploração da avaliação anda p/ direita (demo de travessia); False: aleatória/gulosa
+EPSILON_AVALIACAO    = 0.75          # exploração no episódio assistido (0 = 100% guloso). Só afeta o GIF/janela, não as métricas
+VIES_DIREITA_AVALIACAO = True        # True: exploração da avaliação anda p/ direita (demo de travessia); False: aleatória/gulosa
 
 # =========================================================================
 # Hiperparâmetros do DQN
@@ -81,7 +90,7 @@ batch_size              = 64
 learning_rate           = 0.00025
 discount_factor         = 0.99
 replay_memory_size      = 100000
-learning_steps_per_epoch = 3000  # rodada de ~2h (artigo usa 10000)
+learning_steps_per_epoch = 2000  # resultado final (artigo usa 10000)
 
 # Frame skip: nº de frames que o agente repete a mesma ação por decisão (acelera o
 # treino, pois a CV/rede roda 1x por decisão em vez de K). Só afeta o treino, não a

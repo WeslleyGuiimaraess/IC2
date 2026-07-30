@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 
 save_model = True
 load = False
-skip_learning = False
+skip_learning = False  # True = modo "só avaliar" (carrega o modelo salvo e roda só a avaliação)
 watch = False
 
 # model_savefolder e replay_memory_size vêm de settings.py
@@ -31,6 +31,12 @@ def main():
     print(f"Abordagem selecionada: {ABORDAGEM}")
 
     if skip_learning:
+        #modo "só avaliar": carrega o modelo salvo e roda apenas o episódio de avaliação
+        if ABORDAGEM in ('dqn_raw', 'dqn_filtrado'):
+            n = env.env.action_space.n * 2
+            agent = DQNAgent(num_actions=n, load=True)
+            usar_filtro = (ABORDAGEM == 'dqn_filtrado')
+            assistir_dqn(agent, env, usar_filtro=usar_filtro)
         return
 
     #coletor das métricas do artigo (tempo/frame, recompensa acumulada)

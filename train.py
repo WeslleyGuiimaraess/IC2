@@ -175,21 +175,15 @@ def run_dqn(agent, env, replay_memory, usar_filtro=True, coletor=None):
                     coords = t.extrair_coordenadas(frame_atual)
                     action = acao_por_instinto(coords, largura, altura)
             else:
-                if 0.8 > np.random.uniform(0,1):
-                    if 0.5 < np.random.uniform(0,1):
-                        action = np.random.choice(range(17, 19), 1)[0]
-                        #action = 17
-                    else:
-                        action = np.random.choice(range(8, 10), 1)[0]
-                        #action = 8
-                else:
-                    action = np.random.choice(range(env.env.action_space.n * 2), 1)[0]
+                #exploração: enviesada para a direita (ensina o agente que avançar é bom)
+                action = acao_exploracao(agent.num_actions, VIES_DIREITA_TREINO)
             dec_ms = (perf_counter() - dec_ini) * 1000.0
             #registra o tempo do frame (percepção + decisão)
             if coletor: coletor.registra_frame(cv_ms, dec_ms)
 
-            #observa a ação tomada pelo agente (vetor MultiBinary(18): 9 botões x 2 jogadores)
-            action_list = [1 if k==((action-1)%18) else 0 for k in range(env.env.action_space.n)]
+            #ação espelhada nos 2 jogadores (coop): botão b em p1 (b) e p2 (b+9)
+            _botao = (action-1) % 9
+            action_list = [1 if (k==_botao or k==_botao+9) else 0 for k in range(env.env.action_space.n)]
 
             #frame skip: repete a ação por FRAME_SKIP frames (acelera; 1 CV/decisão em vez de K)
             reward = 0.0
@@ -268,35 +262,43 @@ def assistir_dqn(agent, env, usar_filtro=True):
         else:
             action = int(tf.argmax(agent.dqn(tf.reshape(screen_buf, (1,) + resolution + (1,))), axis=1))
 
-        action_list = [1 if k == ((action-1)%18) else 0 for k in range(env.env.action_space.n)]
+        #ação espelhada nos 2 jogadores (coop)
+        _botao = (action-1) % 9
+        action_list = [1 if (k == _botao or k == _botao+9) else 0 for k in range(env.env.action_space.n)]
 
-        observation, reward, done, info = env.env.step(action_list)
-        env.estado_atual = info
-        env.progresso_atual += info['progresso']
-        total_reward += float(env.pega_recompensa_atual())
-        env.tempo_atual += 1
-        env.estado_anterior = env.estado_atual
+        #frame skip igual ao treino (repete a ação), renderizando/capturando CADA frame
+        for _ in range(FRAME_SKIP):
+            observation, _r, done, info = env.env.step(action_list)
+            env.estado_atual = info
+            env.progresso_atual += info['progresso']
+            total_reward += float(env.pega_recompensa_atual())
+            env.tempo_atual += 1
+            env.estado_anterior = env.estado_atual
+            if (env.progresso_atual > PROGRESSO_FINAL) or (env.tempo_atual > TEMPO_LIMITE):
+                done = True
 
-        if ao_vivo:  #janela ao vivo (precisa do VcXsrv); best-effort
-            try:
-                env.env.render()
-            except Exception as e:
-                print(f"[aviso] janela ao vivo indisponível ({e}); seguindo com os frames salvos.")
-                ao_vivo = False
-            if ao_vivo and DELAY_AVALIACAO:
-                sleep(DELAY_AVALIACAO)
-        if CAPTURAR_AVALIACAO and (passo % CAPTURA_INTERVALO == 0):
-            salvar_frames(f'aval_{ABORDAGEM}', 0, passo, frame, t)
+            frame = env.env.render(mode='rgb_array')
+            if ao_vivo:  #janela ao vivo (precisa do VcXsrv); best-effort
+                try:
+                    env.env.render()
+                except Exception as e:
+                    print(f"[aviso] janela ao vivo indisponível ({e}); seguindo com os frames salvos.")
+                    ao_vivo = False
+                if ao_vivo and DELAY_AVALIACAO:
+                    sleep(DELAY_AVALIACAO)
+            if CAPTURAR_AVALIACAO and (passo % CAPTURA_INTERVALO == 0):
+                salvar_frames(f'aval_{ABORDAGEM}', 0, passo, frame, t)
+            passo += 1
+            if done:
+                break
 
-        if (env.progresso_atual > PROGRESSO_FINAL) or (env.tempo_atual > TEMPO_LIMITE):
-            done = True
+        total_reward += env.recompensa_avanco(t.player_x(frame))
 
         #reseta e continua ao terminar, mantendo a janela aberta até completar os passos
         if done:
             env.reinicia_ambiente()
-        frame = env.env.render(mode='rgb_array')
+            frame = env.env.render(mode='rgb_array')
         screen_buf = processa_frame(t, frame, usar_filtro)
-        passo += 1
 
     print(f'Recompensa do episódio de avaliação: {total_reward}')
     return total_reward
